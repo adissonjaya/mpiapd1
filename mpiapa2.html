@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MPI Informatika Fase D - Pengolah Data</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- SheetJS (XLSX) CDN untuk Export Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Font Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-800 min-h-screen flex flex-col justify-between">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="bg-slate-800 border-b border-slate-700 text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-emerald-500 text-slate-900 p-2 rounded-lg font-black text-xl flex items-center justify-center shadow-lg">
+          <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-base sm:text-lg leading-tight">MPI Informatika - Fase D</h1>
+          <p class="text-xs text-emerald-400">Deep Learning (Mindful, Meaningful, Joyful)</p>
+        </div>
+      </div>
+
+      <!-- User Info Badge & Portal Guru -->
+      <div class="flex items-center space-x-3">
+        <div id="userBadge" class="hidden sm:flex items-center space-x-2 bg-slate-700/80 text-emerald-300 text-xs px-3 py-1.5 rounded-full border border-emerald-500/30">
+          <i data-lucide="user" class="w-3.5 h-3.5"></i>
+          <span id="badgeName" class="font-semibold">Siswa</span>
+          <span class="text-slate-400">|</span>
+          <span id="badgeClass" class="text-slate-300">Kelas</span>
+        </div>
+        <button onclick="openTeacherAuthModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold px-3 py-1.5 rounded-lg text-xs sm:text-sm flex items-center space-x-1.5 transition-all shadow-md">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span>Portal Guru</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- STEPPER NAVIGATION BAR (Akses dikunci sebelum isi identitas) -->
+  <div id="navigationStepper" class="bg-slate-800/90 border-b border-slate-700/80 sticky top-16 z-30 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 overflow-x-auto custom-scrollbar flex items-center space-x-2 text-xs">
+      <button onclick="goToStep(1)" id="stepBtn1" class="px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1.5 whitespace-nowrap bg-emerald-600 text-white shadow">
+        <i data-lucide="home" class="w-3.5 h-3.5"></i>
+        <span>Cover & Identitas</span>
+      </button>
+      <button onclick="goToStep(2)" id="stepBtn2" class="px-3 py-1.5 rounded-lg font-semibold text-slate-400 opacity-60 flex items-center space-x-1.5 whitespace-nowrap cursor-not-allowed">
+        <i data-lucide="tv" class="w-3.5 h-3.5"></i>
+        <span>1. Apersepsi</span>
+      </button>
+      <button onclick="goToStep(3)" id="stepBtn3" class="px-3 py-1.5 rounded-lg font-semibold text-slate-400 opacity-60 flex items-center space-x-1.5 whitespace-nowrap cursor-not-allowed">
+        <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+        <span>2. Materi Pengetahuan</span>
+      </button>
+      <button onclick="goToStep(4)" id="stepBtn4" class="px-3 py-1.5 rounded-lg font-semibold text-slate-400 opacity-60 flex items-center space-x-1.5 whitespace-nowrap cursor-not-allowed">
+        <i data-lucide="users" class="w-3.5 h-3.5"></i>
+        <span>3. Studi Kasus</span>
+      </button>
+      <button onclick="goToStep(5)" id="stepBtn5" class="px-3 py-1.5 rounded-lg font-semibold text-slate-400 opacity-60 flex items-center space-x-1.5 whitespace-nowrap cursor-not-allowed">
+        <i data-lucide="award" class="w-3.5 h-3.5"></i>
+        <span>4. Post-Test</span>
+      </button>
+      <button onclick="goToStep(6)" id="stepBtn6" class="px-3 py-1.5 rounded-lg font-semibold text-slate-400 opacity-60 flex items-center space-x-1.5 whitespace-nowrap cursor-not-allowed">
+        <i data-lucide="heart-handshake" class="w-3.5 h-3.5"></i>
+        <span>5. Refleksi</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-grow max-w-5xl w-full mx-auto p-4 sm:p-6 my-4">
+    
+    <!-- STEP 1: COVER & IDENTITAS (WAJIB DIISI) -->
+    <section id="step1" class="glass-card rounded-2xl p-6 sm:p-10 shadow-2xl border border-slate-200">
+      <div class="text-center max-w-2xl mx-auto">
+        <div class="inline-flex p-3 rounded-2xl bg-emerald-100 text-emerald-700 mb-4">
+          <i data-lucide="table-properties" class="w-12 h-12"></i>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Pengolahan Data Angka</h2>
+        <p class="mt-2 text-slate-600 text-sm sm:text-base">Media Pembelajaran Interaktif Informatika SMP/MTs (Fase D)</p>
+        
+        <div class="my-6 p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-left text-xs sm:text-sm text-emerald-900 space-y-2">
+          <div class="flex items-center space-x-2 font-bold text-emerald-800">
+            <i data-lucide="target" class="w-4 h-4"></i>
+            <span>Tujuan Pembelajaran:</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-700">
+			<li>Menjelaskan konsep dasar, kegunaan, dan antarmuka aplikasi pengolah data secara tepat setelah mengamati tayangan apersepsi dan bahan ajar interaktif.</li>
+			<li>Mengidentifikasi fitur-fitur utama pengolahan data melalui eksplorasi studi kasus kelompok.</li>
+          </ul>
+        </div>
+
+        <div class="p-3 mb-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs font-semibold flex items-center justify-center space-x-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-amber-600"></i>
+          <span>Harap isi nama dan kelas terlebih dahulu untuk membuka akses seluruh materi pembelajaran.</span>
+        </div>
+
+        <form id="loginForm" onsubmit="saveStudentIdentity(event)" class="space-y-4 text-left max-w-md mx-auto">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nama Lengkap Siswa <span class="text-rose-500">*</span></label>
+            <input type="text" id="studentName" required placeholder="Contoh: Ahmad Rizky" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-slate-800">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Kelas <span class="text-rose-500">*</span></label>
+            <input type="text" id="studentClass" required placeholder="Contoh: VII-A / VIII-B" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-slate-800">
+          </div>
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2">
+            <span>Mulai Pembelajaran</span>
+            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- STEP 2: APERSEPSI (VIDEO) -->
+    <section id="step2" class="hidden glass-card rounded-2xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6">
+      <div class="border-b pb-4 border-slate-200 flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold text-emerald-600 tracking-wider uppercase">Tahap 1: Apersepsi</span>
+          <h2 class="text-2xl font-bold text-slate-900">Mengapa Kita Membutuhkan Pengolah Data?</h2>
+        </div>
+        <i data-lucide="tv" class="w-8 h-8 text-emerald-500"></i>
+      </div>
+
+      <p class="text-slate-600 text-sm">Amati video apersepsi di bawah ini untuk memahami pentingnya pengolahan data otomatis dalam kehidupan sehari-hari sebelum kita memulai eksplorasi.</p>
+
+      <div class="relative w-full aspect-video bg-slate-950 rounded-xl overflow-hidden shadow-inner border border-slate-800 flex items-center justify-center">
+        <iframe id="apersepsiVideoFrame" class="w-full h-full" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Video Apersepsi" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </section>
+
+    <!-- STEP 3: MATERI PENGETAHUAN AWAL -->
+    <section id="step3" class="hidden glass-card rounded-2xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6">
+      <div class="border-b pb-4 border-slate-200 flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold text-emerald-600 tracking-wider uppercase">Tahap 2: Pengetahuan Awal</span>
+          <h2 class="text-2xl font-bold text-slate-900">Materi Konsep Dasar Aplikasi Pengolah Data</h2>
+        </div>
+        <i data-lucide="book-open" class="w-8 h-8 text-emerald-500"></i>
+      </div>
+
+      <div class="space-y-6 text-slate-700 text-sm sm:text-base leading-relaxed">
+        
+        <!-- Pertanyaan Pemantik (Deep Learning: Mindful & Meaningful) -->
+        <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-xl border border-amber-200 shadow-sm space-y-3">
+          <div class="flex items-center space-x-2 text-amber-800 font-bold text-base sm:text-lg">
+            <i data-lucide="help-circle" class="w-6 h-6 text-amber-600"></i>
+            <span>Pertanyaan Pemantik</span>
+          </div>
+          <div class="space-y-2 text-slate-700 text-sm sm:text-base italic bg-white/70 p-4 rounded-lg border border-amber-100">
+            <p class="font-medium text-slate-800">
+              "Bayangkan jika sekolahmu harus mengolah nilai akhir semester dari 500 siswa beserta rata-rata dan peringkatnya hanya dengan menggunakan kalkulator genggam dan mencatatnya di kertas. Berapa banyak waktu yang dibutuhkan dan seberapa besar risiko terjadinya kesalahan hitung?"
+            </p>
+            <p class="text-xs text-amber-900 font-normal non-italic pt-1">
+              💡 <i>Renungkan: Bagaimana teknologi komputer dapat membantu kita menyelesaikan pekerjaan perhitungan data dalam hitungan detik?</i>
+            </p>
+          </div>
+        </div>
+
+        <!-- Pengertian -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <h3 class="font-bold text-slate-900 text-lg flex items-center space-x-2 text-emerald-700">
+            <i data-lucide="info" class="w-5 h-5"></i>
+            <span>1. Pengertian Aplikasi Pengolah Data</span>
+          </h3>
+          <p>
+            Aplikasi Pengolah Data (yang sebelumnya dikenal sebagai <b>Aplikasi Pengolah Angka</b> atau <i>Spreadsheet</i>) adalah perangkat lunak yang dirancang khusus untuk mengorganisasi, menghitung, menganalisis, serta memvisualisasikan data dalam bentuk tabel interaktif.
+          </p>
+        </div>
+
+        <!-- Kegunaan -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <h3 class="font-bold text-slate-900 text-lg flex items-center space-x-2 text-emerald-700">
+            <i data-lucide="briefcase" class="w-5 h-5"></i>
+            <span>2. Kegunaan dan Manfaat Utama</span>
+          </h3>
+          <ul class="list-disc list-inside space-y-1 text-slate-600">
+            <li><b>Kalkulasi Otomatis:</b> Melakukan perhitungan matematika dan statistik sederhana hingga kompleks dengan bantuan formula.</li>
+            <li><b>Manajemen & Penyaringan Data:</b> Mengurutkan data (sorting) dan menyaring data (filtering) secara praktis.</li>
+            <li><b>Visualisasi Grafik:</b> Mengubah tumpukan angka menjadi grafik batang, baris, atau lingkaran agar mudah dipahami.</li>
+            <li><b>Pencatatan Keuangan & Laporan:</b> Menyusun anggaran kas, rekapitulasi nilai siswa, inventaris barang, hingga laporan keuangan bisnis.</li>
+          </ul>
+        </div>
+
+        <!-- Contoh Aplikasi -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <h3 class="font-bold text-slate-900 text-lg flex items-center space-x-2 text-emerald-700">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+            <span>3. Contoh Aplikasi Pengolah Data Populer</span>
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
+              <span class="font-bold text-emerald-900 block">Microsoft Excel</span>
+              <span class="text-xs text-emerald-700">Aplikasi desktop berfitur lengkap buatan Microsoft</span>
+            </div>
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
+              <span class="font-bold text-emerald-900 block">Google Sheets</span>
+              <span class="text-xs text-emerald-700">Aplikasi berbasis cloud untuk kolaborasi online real-time</span>
+            </div>
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
+              <span class="font-bold text-emerald-900 block">WPS Spreadsheet</span>
+              <span class="text-xs text-emerald-700">Alternatif hemat memori yang dapat diakses di PC dan Smartphone</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Struktur Worksheet -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <h3 class="font-bold text-slate-900 text-lg flex items-center space-x-2 text-emerald-700">
+            <i data-lucide="grid" class="w-5 h-5"></i>
+            <span>4. Komponen & Struktur Lembar Kerja (Worksheet)</span>
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <span class="font-bold text-slate-900">Kolom (Column) & Baris (Row):</span>
+              <p class="text-slate-600 mt-1">Kolom diidentifikasi dengan huruf (A, B, C, ...) secara vertikal. Baris diidentifikasi dengan angka (1, 2, 3, ...) secara horizontal.</p>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <span class="font-bold text-slate-900">Sel (Cell) & Rentang (Range):</span>
+              <p class="text-slate-600 mt-1">Sel adalah pertemuan baris dan kolom (misal: <b>B4</b>). Rentang (<i>Range</i>) adalah kumpulan beberapa sel yang dipilih (misal: <b>A1:C10</b>).</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formula & Fungsi Statistik -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <h3 class="font-bold text-slate-900 text-lg flex items-center space-x-2 text-emerald-700">
+            <i data-lucide="calculator" class="w-5 h-5"></i>
+            <span>5. Penggunaan Rumus (Formula) dan Fungsi Statistik</span>
+          </h3>
+          <p class="text-slate-600 text-xs sm:text-sm">
+            Setiap rumus atau perhitungan matematika pada aplikasi pengolah data <b>WAJIB diawali dengan tanda sama dengan (<code>=</code>)</b>.
+          </p>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs font-mono">
+            <div class="p-2 bg-slate-100 rounded border border-slate-300">
+              <b class="text-emerald-700 block text-sm">=SUM()</b>
+              <span>Penjumlahan Total</span>
+            </div>
+            <div class="p-2 bg-slate-100 rounded border border-slate-300">
+              <b class="text-emerald-700 block text-sm">=AVERAGE()</b>
+              <span>Rata-rata Data</span>
+            </div>
+            <div class="p-2 bg-slate-100 rounded border border-slate-300">
+              <b class="text-emerald-700 block text-sm">=MAX()</b>
+              <span>Nilai Tertinggi</span>
+            </div>
+            <div class="p-2 bg-slate-100 rounded border border-slate-300">
+              <b class="text-emerald-700 block text-sm">=MIN()</b>
+              <span>Nilai Terendah</span>
+            </div>
+            <div class="p-2 bg-slate-100 rounded border border-slate-300">
+              <b class="text-emerald-700 block text-sm">=COUNT()</b>
+              <span>Menghitung Jumlah Sel</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- STEP 4: STUDI KASUS EKSPLORATIF (KELOMPOK) -->
+    <section id="step4" class="hidden glass-card rounded-2xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6">
+      <div class="border-b pb-4 border-slate-200 flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold text-emerald-600 tracking-wider uppercase">Tahap 3: Diskusi & Eksplorasi (Deep Learning)</span>
+          <h2 class="text-2xl font-bold text-slate-900">Studi Kasus: Pengolah Data vs Pengolah Kata</h2>
+        </div>
+        <i data-lucide="users" class="w-8 h-8 text-emerald-500"></i>
+      </div>
+
+      <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs sm:text-sm text-blue-900 space-y-2">
+        <b class="font-bold flex items-center space-x-1">
+          <i data-lucide="terminal" class="w-4 h-4"></i>
+          <span>Instruksi Kegiatan Kelompok (3-4 Siswa):</span>
+        </b>
+        <ol class="list-decimal list-inside space-y-1 text-slate-700">
+          <li>Buka 1 aplikasi <b>Pengolah Data</b> (Ms Excel / Google Sheets / WPS Sheet).</li>
+          <li>Buka 1 aplikasi <b>Pengolah Kata</b> (Ms Word / Google Docs / WPS Doc).</li>
+          <li>Bandingkan kedua aplikasi tersebut dan amati tampilan antarmuka serta fiturnya.</li>
+          <li>Diskusikan bersama kelompok dan isi hasil analisis di bawah ini.</li>
+        </ol>
+      </div>
+
+      <!-- Form Input Studi Kasus -->
+      <form id="caseStudyForm" onsubmit="submitCaseStudy(event)" class="space-y-5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Anggota Kelompok (3-4 Orang)</label>
+          <input type="text" id="groupMembers" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">1. Fitur Persamaan (Ada di Kedua Aplikasi)</label>
+          <textarea id="caseSimilarities" rows="3" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm custom-scrollbar"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">2. Fitur Pembeda / Khas (HANYA Ada di Aplikasi Pengolah Data)</label>
+          <textarea id="caseUniqueFeatures" rows="3" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm custom-scrollbar"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">3. Kesimpulan Kelompok</label>
+          <textarea id="caseConclusion" rows="3" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm custom-scrollbar"></textarea>
+        </div>
+
+        <div class="flex flex-wrap gap-3 items-center justify-between pt-2">
+          <button type="submit" class="px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm flex items-center space-x-2 shadow-md">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span>Kirim Jawaban Kelompok</span>
+          </button>
+          
+          <button type="button" onclick="toggleViewCaseStudyResponse()" id="btnViewCaseResponse" class="px-5 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-emerald-300 font-semibold text-sm flex items-center space-x-2 shadow">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+            <span>Lihat Jawaban Kelompok Saya</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- TAMPILAN JAWABAN KHUSUS SISWA INI (TOGGLE) -->
+      <div id="caseResponseViewer" class="hidden p-5 bg-slate-900 text-slate-200 rounded-xl border border-slate-700 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+          <h4 class="font-bold text-emerald-400 text-sm flex items-center space-x-1.5">
+            <i data-lucide="file-check-2" class="w-4 h-4"></i>
+            <span>Jawaban Studi Kasus Kelompok Anda</span>
+          </h4>
+          <span id="caseViewerStatus" class="text-[10px] bg-emerald-900/80 text-emerald-300 px-2 py-0.5 rounded font-bold">Tersimpan</span>
+        </div>
+        <div class="space-y-3 text-xs sm:text-sm">
+          <p><b>Anggota Kelompok:</b> <span id="viewGroupMembers" class="text-slate-300">-</span></p>
+          <div class="p-3 bg-slate-800 rounded border border-slate-700">
+            <b class="text-emerald-400 block mb-1">Fitur Persamaan:</b>
+            <p id="viewSimilarities" class="text-slate-300 leading-relaxed">-</p>
+          </div>
+          <div class="p-3 bg-slate-800 rounded border border-slate-700">
+            <b class="text-amber-400 block mb-1">Fitur Pembeda Khas Pengolah Data:</b>
+            <p id="viewUniqueFeatures" class="text-slate-300 leading-relaxed">-</p>
+          </div>
+          <div class="p-3 bg-slate-800 rounded border border-slate-700">
+            <b class="text-blue-400 block mb-1">Kesimpulan Diskusi:</b>
+            <p id="viewConclusion" class="text-slate-300 leading-relaxed">-</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- STEP 5: POST-TEST (20 SOAL HOTS & VARIATIF DENGAN KOREKSI PEMBAHASAN) -->
+    <section id="step5" class="hidden glass-card rounded-2xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6">
+      <div class="border-b pb-4 border-slate-200 flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold text-emerald-600 tracking-wider uppercase">Tahap 4: Evaluasi Pembelajaran</span>
+          <h2 class="text-2xl font-bold text-slate-900">Post-Test Kemampuan Informatika</h2>
+        </div>
+        <i data-lucide="award" class="w-8 h-8 text-emerald-500"></i>
+      </div>
+
+      <div class="p-4 bg-slate-100 rounded-xl text-xs sm:text-sm text-slate-700">
+        Jawablah 20 soal evaluasi berikut dengan teliti. Setelah tombol kirim diklik, Anda akan mendapatkan <b>koreksi otomatis beserta penjelasan pembahasan</b> untuk setiap jawaban!
+      </div>
+
+      <form id="quizForm" onsubmit="submitQuiz(event)" class="space-y-6">
+        <div id="quizContainer" class="space-y-6">
+          <!-- Soal di-render dinamis lewat JS -->
+        </div>
+
+        <div class="flex flex-wrap gap-3 items-center justify-between pt-4 border-t border-slate-200">
+          <button type="submit" id="btnSubmitQuiz" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center space-x-2 shadow-lg">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span>Kirim Jawaban Post-Test</span>
+          </button>
+          
+          <button type="button" onclick="goToStep(6)" class="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-sm flex items-center space-x-2 shadow-md">
+            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+            <span>Lihat Skor & Refleksi</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- STEP 6: HASIL SKOR & REFLEKSI PEMBELAJARAN -->
+    <section id="step6" class="hidden glass-card rounded-2xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6">
+      <div class="text-center space-y-3 border-b pb-6 border-slate-200">
+        <div class="inline-flex p-3 rounded-full bg-emerald-100 text-emerald-600 mb-1">
+          <i data-lucide="check-circle-2" class="w-12 h-12"></i>
+        </div>
+        <h2 class="text-3xl font-extrabold text-slate-900">Hasil Evaluasi Pembelajaran</h2>
+        <p class="text-slate-600 text-sm">Berikut perolehan skor akhir Post-Test Anda:</p>
+        
+        <div class="max-w-xs mx-auto my-4 p-4 bg-slate-900 text-white rounded-2xl shadow-xl">
+          <span class="text-xs uppercase text-slate-400 font-semibold tracking-wider">Skor Akhir Anda</span>
+          <div id="scoreDisplay" class="text-5xl font-black text-emerald-400 my-1">0</div>
+          <span class="text-xs text-slate-300">Skala Max 100</span>
+        </div>
+        
+        <button onclick="goToStep(5)" class="inline-flex items-center space-x-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 underline">
+          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+          <span>Lihat Kembali Koreksi & Pembahasan Soal</span>
+        </button>
+      </div>
+
+      <!-- Form Refleksi -->
+      <form id="reflectionForm" onsubmit="submitReflection(event)" class="space-y-4">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
+          <i data-lucide="heart-handshake" class="w-5 h-5 text-emerald-600"></i>
+          <span>Refleksi Proses Pembelajaran (Mindful Learning)</span>
+        </h3>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">1. Perasaan Anda setelah mengikuti pembelajaran hari ini?</label>
+          <select id="refFeelings" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 text-sm">
+            <option value="">-- Pilih Perasaan --</option>
+            <option value="Sangat Senang & Paham">Sangat Senang & Paham</option>
+            <option value="Cukup Senang">Cukup Senang</option>
+            <option value="Biasa Saja">Biasa Saja</option>
+            <option value="Masih Bingung">Masih Bingung</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">2. Hal paling berharga/menarik yang Anda pelajari hari ini?</label>
+          <textarea id="refLearned" rows="2" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 text-sm"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">3. Hambatan atau kendala yang dihadapi saat berdiskusi?</label>
+          <textarea id="refObstacles" rows="2" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 text-sm"></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-md flex items-center justify-center space-x-2">
+          <i data-lucide="save" class="w-5 h-5"></i>
+          <span>Simpan Seluruh Hasil Pembelajaran</span>
+        </button>
+      </form>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-950 border-t border-slate-800 py-4 text-center text-slate-400 text-xs">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>MPI Informatika Fase D &copy; 2026 - Deep Learning Approach</p>
+    </div>
+  </footer>
+
+  <!-- MODAL AUTHENTIKASI GURU -->
+  <div id="teacherAuthModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-slate-900 text-lg flex items-center space-x-2">
+          <i data-lucide="lock" class="w-5 h-5 text-amber-500"></i>
+          <span>Verifikasi Portal Guru</span>
+        </h3>
+        <button onclick="closeTeacherAuthModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Masukkan PIN Guru</label>
+        <input type="password" id="teacherPinInput" placeholder="Masukkan PIN" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 text-slate-800">
+      </div>
+      <button onclick="verifyTeacherPin()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 rounded-lg transition-all shadow">
+        Masuk Portal Guru
+      </button>
+    </div>
+  </div>
+
+  <!-- PORTAL DASBOR GURU (FULLSCREEN MODAL) -->
+  <div id="teacherDashboardModal" class="fixed inset-0 bg-slate-900 z-50 hidden overflow-y-auto custom-scrollbar">
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+      
+      <!-- Dashboard Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 text-white gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="bg-amber-500 text-slate-950 text-xs px-2.5 py-0.5 rounded-full font-black uppercase">Guru Mode</span>
+            <h2 class="text-2xl font-bold">Dashboard Pengelolaan & Rekapitulasi MPI</h2>
+          </div>
+          <p class="text-slate-400 text-xs sm:text-sm mt-1">Kelola link video dan ekspor seluruh respon jawaban siswa ke format Excel.</p>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+          <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center space-x-1.5 shadow">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Export Excel (.xlsx)</span>
+          </button>
+          <button onclick="closeTeacherDashboard()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-xl text-sm font-semibold flex items-center space-x-1">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span>Tutup</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Settings Panel (Video Link) -->
+      <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 space-y-3 text-white">
+        <h3 class="font-bold text-sm text-emerald-400 uppercase flex items-center space-x-2">
+          <i data-lucide="video" class="w-4 h-4"></i>
+          <span>Pengaturan Video Apersepsi</span>
+        </h3>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input type="text" id="videoUrlInput" placeholder="https://www.youtube.com/embed/..." class="flex-grow px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+          <button onclick="updateVideoUrl()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-2 rounded-lg transition-all whitespace-nowrap">
+            Simpan Link Video
+          </button>
+        </div>
+      </div>
+
+      <!-- Categorized Response View Table -->
+      <div class="bg-slate-800 rounded-2xl border border-slate-700 p-5 text-white space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700 pb-4">
+          <div>
+            <h3 class="font-bold text-lg flex items-center space-x-2">
+              <i data-lucide="list-checks" class="w-5 h-5 text-emerald-400"></i>
+              <span>Rekapitulasi Respon Siswa</span>
+            </h3>
+            <p class="text-xs text-slate-400">Filter respon berdasarkan kategori untuk evaluasi komprehensif.</p>
+          </div>
+          <button onclick="clearLocalResponses()" class="text-xs bg-red-900/40 hover:bg-red-900/80 text-red-300 border border-red-700 px-3 py-1.5 rounded-lg flex items-center space-x-1 self-start sm:self-auto">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            <span>Hapus Semua Data</span>
+          </button>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex space-x-2 border-b border-slate-700 pb-2 overflow-x-auto">
+          <button onclick="filterResponseCategory('all')" id="tabAll" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white">Semua Respon</button>
+          <button onclick="filterResponseCategory('case')" id="tabCase" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 text-slate-300 hover:bg-slate-600">Studi Kasus</button>
+          <button onclick="filterResponseCategory('quiz')" id="tabQuiz" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 text-slate-300 hover:bg-slate-600">Post-Test</button>
+          <button onclick="filterResponseCategory('reflection')" id="tabReflection" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 text-slate-300 hover:bg-slate-600">Refleksi</button>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-900 text-slate-400 uppercase font-semibold">
+              <tr>
+                <th class="p-3">Waktu</th>
+                <th class="p-3">Nama Siswa</th>
+                <th class="p-3">Kelas</th>
+                <th class="p-3">Kategori</th>
+                <th class="p-3">Ringkasan / Skor</th>
+                <th class="p-3 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="responseTableBody" class="divide-y divide-slate-700">
+              <!-- Rendered via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL RESPON SISWA -->
+  <div id="detailModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 text-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-700 space-y-4 max-h-[85vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <h3 id="modalDetailTitle" class="font-bold text-base sm:text-lg text-emerald-400">Detail Respon</h3>
+        <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="modalDetailContent" class="space-y-3 text-xs sm:text-sm text-slate-300">
+        <!-- Content inserted dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT ENGINE -->
+  <script>
+    let currentUser = { name: '', class: '' };
+    let isIdentified = false; // Flag status pengisian nama & kelas
+    let currentStep = 1;
+    let defaultPin = "1234";
+    let activeCategoryFilter = 'all';
+
+    let studentCaseStudyData = null;
+
+    // 20 SOAL POST-TEST BESERTA PEMBAHASAN / EXPLANATION
+    const quizQuestions = [
+      {
+        id: 1, type: 'pg',
+        question: "Perangkat lunak yang dirancang khusus untuk mengorganisasi, menghitung, serta memvisualisasikan data dalam bentuk tabel interaktif adalah...",
+        options: ["Aplikasi Pengolah Kata", "Aplikasi Pengolah Data", "Aplikasi Presentasi", "Aplikasi Desain Grafis"],
+        answer: "Aplikasi Pengolah Data",
+        explanation: "Aplikasi pengolah data (spreadsheet) dirancang khusus untuk mengelola data dalam bentuk tabel interaktif (baris & kolom) serta melakukan kalkulasi otomatis."
+      },
+      {
+        id: 2, type: 'pg',
+        question: "Setiap penulisan rumus matematika atau formula pada aplikasi pengolah data harus selalu diawali dengan karakter...",
+        options: ["Tanda Tambah (+)", "Tanda Sama Dengan (=)", "Tanda Bintang (*)", "Tanda Seru (!)"],
+        answer: "Tanda Sama Dengan (=)",
+        explanation: "Karakter sama dengan (=) adalah penanda mutlak bagi aplikasi pengolah data untuk mengeksekusi ekspresi sebagai rumus perhitungan."
+      },
+      {
+        id: 3, type: 'pg',
+        question: "Pertemuan antara kolom C dan baris ke-5 pada lembar kerja spreadsheet disebut sebagai sel...",
+        options: ["5C", "C-5", "C5", "CC5"],
+        answer: "C5",
+        explanation: "Penamaan lokasi sel selalu mendahulukan nama Kolom (huruf) lalu diikuti nomor Baris (angka), sehingga hasilnya adalah C5."
+      },
+      {
+        id: 4, type: 'pg',
+        question: "Fungsi statistik yang digunakan untuk menghitung nilai rata-rata dari sekumpulan data angka adalah...",
+        options: ["SUM", "COUNT", "MAX", "AVERAGE"],
+        answer: "AVERAGE",
+        explanation: "Fungsi =AVERAGE() bertugas menghitung rata-rata aritmetika, =SUM() untuk total penjumlahan, dan =COUNT() untuk menghitung jumlah sel berangka."
+      },
+      {
+        id: 5, type: 'pg',
+        question: "Manakah di bawah ini yang MERUPAKAN contoh aplikasi pengolah data berbasis cloud yang dapat diakses secara kolaboratif?",
+        options: ["Microsoft Word", "Google Sheets", "Adobe Photoshop", "Google Docs"],
+        answer: "Google Sheets",
+        explanation: "Google Sheets adalah spreadsheet cloud milik Google yang memungkinkan pengguna mengedit data bersama-sama secara langsung/kolaboratif."
+      },
+      {
+        id: 6, type: 'pg_kompleks',
+        question: "Pilihlah DUA kegunaan utama dari aplikasi pengolah data!",
+        options: ["Melakukan kalkulasi matematika secara otomatis", "Membuat desain poster visual skala besar", "Memvisualisasikan data menjadi grafik interaktif", "Menulis novel dan cerpen tanpa tabel"],
+        answer: ["Melakukan kalkulasi matematika secara otomatis", "Memvisualisasikan data menjadi grafik interaktif"],
+        explanation: "Kegunaan utama pengolah data difokuskan pada kalkulasi matematis/statistik otomatis serta pembuatan visualisasi grafik dari data numerik."
+      },
+      {
+        id: 7, type: 'pg_kompleks',
+        question: "Pilihlah DUA aplikasi yang tergolong ke dalam kategori aplikasi Pengolah Data!",
+        options: ["Microsoft Excel", "WPS Spreadsheet", "Microsoft Powerpoint", "Google Slides"],
+        answer: ["Microsoft Excel", "WPS Spreadsheet"],
+        explanation: "Microsoft Excel dan WPS Spreadsheet dirancang khusus untuk mengolah angka/data. PowerPoint dan Google Slides adalah pengolah presentasi."
+      },
+      {
+        id: 8, type: 'pg_kompleks',
+        question: "Pilihlah DUA fungsi statistik yang digunakan untuk mencari nilai ekstrim (tertinggi dan terendah)!",
+        options: ["MAX", "MIN", "SUM", "AVERAGE"],
+        answer: ["MAX", "MIN"],
+        explanation: "=MAX() digunakan untuk mencari nilai tertinggi, sedangkan =MIN() digunakan untuk menentukan nilai terendah dari suatu rentang data."
+      },
+      {
+        id: 9, type: 'pg_kompleks',
+        question: "Manakah DUA komponen utama yang membentuk struktur kotak-kotak pada lembar kerja (worksheet)?",
+        options: ["Kolom (Column)", "Baris (Row)", "Slide", "Paragraph"],
+        answer: ["Kolom (Column)", "Baris (Row)"],
+        explanation: "Lembar kerja spreadsheet tersusun dari perpotongan vertikal yang disebut Kolom (Column) dan perpotongan horizontal yang disebut Baris (Row)."
+      },
+      {
+        id: 10, type: 'pg_kompleks',
+        question: "Manakah DUA pekerjaan berikut yang paling efektif dikerjakan menggunakan aplikasi pengolah data?",
+        options: ["Menyusun rekapitulasi nilai akhir semester siswa", "Membuat daftar anggaran pengeluaran bulanan keluarga", "Edit rekaman suara lagu", "Membuat presentasi animasi interaktif"],
+        answer: ["Menyusun rekapitulasi nilai akhir semester siswa", "Membuat daftar anggaran pengeluaran bulanan keluarga"],
+        explanation: "Pekerjaan yang melibatkan tabel angka, formula nilai, dan anggaran dana sangat efektif diproses pada aplikasi pengolah data."
+      },
+      {
+        id: 11, type: 'bs',
+        question: "Koleksi atau gabungan dari beberapa sel yang dipilih bersamaan (misal: A1 sampai A10) disebut sebagai Range.",
+        options: ["Benar", "Salah"],
+        answer: "Benar",
+        explanation: "Pernyataan Benar. Range adalah sekumpulan dua sel atau lebih yang dipilih dalam lembar kerja (dituliskan dengan notasi A1:A10)."
+      },
+      {
+        id: 12, type: 'bs',
+        question: "Fungsi SUM digunakan khusus untuk menghitung banyaknya jumlah sel yang berisi angka, bukan menjumlahkan nilainya.",
+        options: ["Benar", "Salah"],
+        answer: "Salah",
+        explanation: "Pernyataan Salah. Fungsi =SUM() digunakan untuk menjumlahkan nilai total angka. Fungsi yang digunakan untuk menghitung banyaknya sel adalah =COUNT()."
+      },
+      {
+        id: 13, type: 'bs',
+        question: "Fitur Sorting memungkinkan pengguna untuk mengurutkan data dari nilai terkecil ke terbesar (A-Z) atau sebaliknya.",
+        options: ["Benar", "Salah"],
+        answer: "Benar",
+        explanation: "Pernyataan Benar. Sorting (Pengurutan) mempermudah penataan data baik secara ascending (A-Z / terkecil ke terbesar) maupun descending."
+      },
+      {
+        id: 14, type: 'bs',
+        question: "Kolom pada lembar kerja pengolah data biasanya diidentifikasi dengan simbol angka (1, 2, 3), sedangkan baris dengan huruf (A, B, C).",
+        options: ["Benar", "Salah"],
+        answer: "Salah",
+        explanation: "Pernyataan Salah. Terbalik! Kolom diidentifikasi dengan Huruf (A, B, C), sedangkan Baris diidentifikasi dengan Angka (1, 2, 3)."
+      },
+      {
+        id: 15, type: 'bs',
+        question: "Numerasi: Jika sel A1 = 10 dan sel B1 = 20, maka formula `=A1+B1` pada sel C1 akan menghasilkan nilai 30.",
+        options: ["Benar", "Salah"],
+        answer: "Benar",
+        explanation: "Pernyataan Benar. Perhitungan formula `=A1+B1` secara otomatis melakukan operasi penjumlahan 10 + 20 = 30."
+      },
+      {
+        id: 16, type: 'matching',
+        question: "Jodohkan fungsi statistik dengan peran perhitungannya yang tepat!",
+        pairLeft: "=MAX(A1:A5)",
+        options: ["Menghitung total nilai dari sel A1 hingga A5", "Mencari nilai tertinggi dari sel A1 hingga A5", "Mencari nilai rata-rata dari sel A1 hingga A5"],
+        answer: "Mencari nilai tertinggi dari sel A1 hingga A5",
+        explanation: "Fungsi =MAX(A1:A5) secara khusus mencari angka terbesar (nilai tertinggi) di dalam kumpulan rentang sel A1 sampai A5."
+      },
+      {
+        id: 17, type: 'matching',
+        question: "Jodohkan istilah struktur lembar kerja berikut dengan penjelasannya!",
+        pairLeft: "Sel (Cell)",
+        options: ["Kumpulan baris dan kolom yang luas", "Pertemuan antara satu kolom vertikal dan satu baris horizontal", "Proses menyaring data spesifik"],
+        answer: "Pertemuan antara satu kolom vertikal dan satu baris horizontal",
+        explanation: "Sel (Cell) merupakan unit terkecil berupa kotak perpotongan antara kolom vertikal dan baris horizontal."
+      },
+      {
+        id: 18, type: 'matching',
+        question: "Jodohkan fitur pengelolaan data berikut!",
+        pairLeft: "Filtering (Penyaringan)",
+        options: ["Mengurutkan data dari A ke Z", "Menampilkan data yang hanya memenuhi kriteria tertentu", "Menghapus seluruh baris data"],
+        answer: "Menampilkan data yang hanya memenuhi kriteria tertentu",
+        explanation: "Filtering menyaring data dalam tabel agar hanya baris data yang memenuhi kondisi/kriteria tertentu saja yang ditampilkan."
+      },
+      {
+        id: 19, type: 'matching',
+        question: "Jodohkan permasalahan berikut dengan solusi fungsinya!",
+        pairLeft: "Mencari siswa dengan nilai terkecil di kelas",
+        options: ["Menggunakan fungsi =MIN()", "Menggunakan fungsi =AVERAGE()", "Menggunakan fungsi =COUNT()"],
+        answer: "Menggunakan fungsi =MIN()",
+        explanation: "Fungsi =MIN() dirancang khusus untuk mencari nilai terkecil/terendah dari sekumpulan data numerik."
+      },
+      {
+        id: 20, type: 'matching',
+        question: "Numerasi: Jika data pada sel B1:B4 adalah 4, 6, 8, 2. Berapakah hasil dari formula `=AVERAGE(B1:B4)`?",
+        pairLeft: "Hasil Formula `=AVERAGE(B1:B4)`",
+        options: ["20", "5", "4"],
+        answer: "5",
+        explanation: "Rata-rata dihitung dari total penjumlahan (4+6+8+2 = 20) dibagi jumlah data (4 data), yaitu 20 / 4 = 5."
+      }
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      renderQuizQuestions();
+      loadTeacherSettings();
+    });
+
+    // VALIDASI PENGISIAN NAMA & KELAS (AKSES NAVIGASI DILINDUNGI)
+    function goToStep(step) {
+      if (step !== 1 && !isIdentified) {
+        alert("Peringatan: Anda WAJIB mengisi Nama Lengkap dan Kelas terlebih dahulu sebelum melanjutkan!");
+        return;
+      }
+
+      currentStep = step;
+      for (let i = 1; i <= 6; i++) {
+        const sec = document.getElementById(`step${i}`);
+        const btn = document.getElementById(`stepBtn${i}`);
+        if (sec) sec.classList.add('hidden');
+        if (btn && isIdentified) {
+          btn.className = "px-3 py-1.5 rounded-lg font-semibold text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-1.5 whitespace-nowrap cursor-pointer";
+        }
+      }
+      
+      const targetSec = document.getElementById(`step${step}`);
+      const activeBtn = document.getElementById(`stepBtn${step}`);
+      if (targetSec) targetSec.classList.remove('hidden');
+      if (activeBtn && isIdentified) {
+        activeBtn.className = "px-3 py-1.5 rounded-lg font-bold flex items-center space-x-1.5 whitespace-nowrap bg-emerald-600 text-white shadow";
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // SIMPAN IDENTITAS SISWA & BUKA KUNCI NAVIGASI
+    function saveStudentIdentity(e) {
+      e.preventDefault();
+      const nameVal = document.getElementById('studentName').value.trim();
+      const classVal = document.getElementById('studentClass').value.trim();
+
+      if (!nameVal || !classVal) {
+        alert("Silakan lengkapi nama dan kelas Anda!");
+        return;
+      }
+
+      currentUser.name = nameVal;
+      currentUser.class = classVal;
+      isIdentified = true; // Buka status akses
+
+      document.getElementById('badgeName').innerText = currentUser.name;
+      document.getElementById('badgeClass').innerText = currentUser.class;
+      document.getElementById('userBadge').classList.remove('hidden');
+
+      // Aktifkan visual tombol navigasi
+      for (let i = 2; i <= 6; i++) {
+        const btn = document.getElementById(`stepBtn${i}`);
+        if (btn) {
+          btn.className = "px-3 py-1.5 rounded-lg font-semibold text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-1.5 whitespace-nowrap cursor-pointer";
+        }
+      }
+
+      goToStep(2);
+    }
+
+    function renderQuizQuestions() {
+      const container = document.getElementById('quizContainer');
+      container.innerHTML = '';
+
+      quizQuestions.forEach((q, index) => {
+        const box = document.createElement('div');
+        box.id = `qbox_${q.id}`;
+        box.className = "bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3 transition-all";
+
+        let html = `
+          <div class="flex items-start justify-between">
+            <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-md">Soal ${index + 1}</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">${q.type.replace('_', ' ')}</span>
+          </div>
+          <p class="font-semibold text-slate-800 text-sm sm:text-base">${q.question}</p>
+        `;
+
+        if (q.type === 'pg' || q.type === 'bs') {
+          html += `<div class="space-y-2 pt-1">`;
+          q.options.forEach(opt => {
+            html += `
+              <label class="flex items-center space-x-3 p-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs sm:text-sm">
+                <input type="radio" name="q_${q.id}" value="${opt}" class="text-emerald-600 focus:ring-emerald-500" required>
+                <span>${opt}</span>
+              </label>
+            `;
+          });
+          html += `</div>`;
+        } 
+        else if (q.type === 'pg_kompleks') {
+          html += `<div class="space-y-2 pt-1">`;
+          q.options.forEach(opt => {
+            html += `
+              <label class="flex items-center space-x-3 p-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer text-xs sm:text-sm">
+                <input type="checkbox" name="q_${q.id}" value="${opt}" class="rounded text-emerald-600 focus:ring-emerald-500">
+                <span>${opt}</span>
+              </label>
+            `;
+          });
+          html += `</div>`;
+        } 
+        else if (q.type === 'matching') {
+          html += `
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs sm:text-sm space-y-2">
+              <span class="font-bold text-slate-700">Pasangan: <span class="text-emerald-700">${q.pairLeft}</span></span>
+              <select name="q_${q.id}" required class="w-full p-2 rounded border border-slate-300 text-xs sm:text-sm">
+                <option value="">-- Pilih Jawaban Pasangan --</option>
+                ${q.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+              </select>
+            </div>
+          `;
+        }
+
+        html += `<div id="feedback_${q.id}" class="hidden pt-3 border-t border-slate-200 space-y-2 text-xs sm:text-sm"></div>`;
+        box.innerHTML = html;
+        container.appendChild(box);
+      });
+    }
+
+    function submitCaseStudy(e) {
+      e.preventDefault();
+      const payload = {
+        timestamp: new Date().toLocaleString('id-ID'),
+        studentName: currentUser.name || "Siswa",
+        studentClass: currentUser.class || "Kelas",
+        category: 'case',
+        groupMembers: document.getElementById('groupMembers').value.trim(),
+        similarities: document.getElementById('caseSimilarities').value.trim(),
+        uniqueFeatures: document.getElementById('caseUniqueFeatures').value.trim(),
+        conclusion: document.getElementById('caseConclusion').value.trim()
+      };
+
+      studentCaseStudyData = payload;
+      saveResponseToLocal(payload);
+      
+      updateCaseStudyViewer(payload);
+      alert("Jawaban Studi Kasus Kelompok Anda berhasil dikirim dan tersimpan!");
+    }
+
+    function toggleViewCaseStudyResponse() {
+      const viewer = document.getElementById('caseResponseViewer');
+      
+      if (!studentCaseStudyData) {
+        const gMembers = document.getElementById('groupMembers').value.trim();
+        const similarities = document.getElementById('caseSimilarities').value.trim();
+        const uniqueFeatures = document.getElementById('caseUniqueFeatures').value.trim();
+        const conclusion = document.getElementById('caseConclusion').value.trim();
+
+        if (gMembers || similarities || uniqueFeatures || conclusion) {
+          updateCaseStudyViewer({
+            groupMembers: gMembers || "(Belum Diisi)",
+            similarities: similarities || "(Belum Diisi)",
+            uniqueFeatures: uniqueFeatures || "(Belum Diisi)",
+            conclusion: conclusion || "(Belum Diisi)"
+          });
+        } else {
+          alert("Kelompok Anda belum mengisi atau mengirimkan jawaban Studi Kasus.");
+          return;
+        }
+      } else {
+        updateCaseStudyViewer(studentCaseStudyData);
+      }
+
+      viewer.classList.toggle('hidden');
+    }
+
+    function updateCaseStudyViewer(data) {
+      document.getElementById('viewGroupMembers').innerText = data.groupMembers || '-';
+      document.getElementById('viewSimilarities').innerText = data.similarities || '-';
+      document.getElementById('viewUniqueFeatures').innerText = data.uniqueFeatures || '-';
+      document.getElementById('viewConclusion').innerText = data.conclusion || '-';
+    }
+
+    function submitQuiz(e) {
+      e.preventDefault();
+      let totalScore = 0;
+
+      quizQuestions.forEach(q => {
+        const box = document.getElementById(`qbox_${q.id}`);
+        const feedback = document.getElementById(`feedback_${q.id}`);
+        let isCorrect = false;
+        let studentAnswerDisplay = "";
+
+        if (q.type === 'pg' || q.type === 'bs' || q.type === 'matching') {
+          const selected = document.querySelector(`input[name="q_${q.id}"]:checked, select[name="q_${q.id}"]`);
+          const userVal = selected ? selected.value : "";
+          studentAnswerDisplay = userVal || "(Tidak Dijawab)";
+          if (userVal === q.answer) {
+            isCorrect = true;
+          }
+        } else if (q.type === 'pg_kompleks') {
+          const checkboxes = document.querySelectorAll(`input[name="q_${q.id}"]:checked`);
+          const selectedValues = Array.from(checkboxes).map(c => c.value);
+          studentAnswerDisplay = selectedValues.length > 0 ? selectedValues.join(", ") : "(Tidak Dijawab)";
+          isCorrect = q.answer.length === selectedValues.length && q.answer.every(val => selectedValues.includes(val));
+        }
+
+        if (isCorrect) {
+          totalScore += 5;
+          box.className = "bg-emerald-50/70 p-5 rounded-xl border-2 border-emerald-400 shadow-sm space-y-3 transition-all";
+          feedback.innerHTML = `
+            <div class="p-3 bg-emerald-100/80 rounded-lg border border-emerald-300 text-emerald-900 space-y-1">
+              <div class="flex items-center space-x-1.5 font-bold text-emerald-800">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+                <span>Jawaban Anda BENAR!</span>
+              </div>
+              <p class="text-xs text-slate-700"><b>Pembahasan:</b> ${q.explanation}</p>
+            </div>
+          `;
+        } else {
+          box.className = "bg-rose-50/70 p-5 rounded-xl border-2 border-rose-400 shadow-sm space-y-3 transition-all";
+          let kunciDisplay = Array.isArray(q.answer) ? q.answer.join(" DAN ") : q.answer;
+          feedback.innerHTML = `
+            <div class="p-3 bg-rose-100/90 rounded-lg border border-rose-300 text-rose-950 space-y-1">
+              <div class="flex items-center space-x-1.5 font-bold text-rose-700">
+                <i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i>
+                <span>Jawaban Anda SALAH!</span>
+              </div>
+              <p class="text-xs text-slate-800"><b>Jawaban Anda:</b> <span class="line-through text-rose-700">${studentAnswerDisplay}</span></p>
+              <p class="text-xs text-emerald-900 font-bold"><b>Kunci Jawaban Benar:</b> ${kunciDisplay}</p>
+              <p class="text-xs text-slate-700 mt-1"><b>Penjelasan Pembahasan:</b> ${q.explanation}</p>
+            </div>
+          `;
+        }
+
+        feedback.classList.remove('hidden');
+      });
+
+      lucide.createIcons();
+      document.getElementById('scoreDisplay').innerText = totalScore;
+
+      const payload = {
+        timestamp: new Date().toLocaleString('id-ID'),
+        studentName: currentUser.name || "Siswa",
+        studentClass: currentUser.class || "Kelas",
+        category: 'quiz',
+        score: totalScore
+      };
+
+      saveResponseToLocal(payload);
+      alert(`Jawaban Post-Test terkirim!\nSkor Anda: ${totalScore}/100.\n\nLembar pembahasan dan koreksi jawaban salah telah ditampilkan pada setiap soal.`);
+    }
+
+    function submitReflection(e) {
+      e.preventDefault();
+      const payload = {
+        timestamp: new Date().toLocaleString('id-ID'),
+        studentName: currentUser.name || "Siswa",
+        studentClass: currentUser.class || "Kelas",
+        category: 'reflection',
+        feelings: document.getElementById('refFeelings').value,
+        learned: document.getElementById('refLearned').value.trim(),
+        obstacles: document.getElementById('refObstacles').value.trim()
+      };
+
+      saveResponseToLocal(payload);
+      alert("Refleksi pembelajaran berhasil disimpan!");
+    }
+
+    function saveResponseToLocal(data) {
+      let responses = JSON.parse(localStorage.getItem('mpi_student_responses') || '[]');
+      responses.push(data);
+      localStorage.setItem('mpi_student_responses', JSON.stringify(responses));
+    }
+
+    // TEACHER PORTAL & AUTH
+    function openTeacherAuthModal() {
+      document.getElementById('teacherAuthModal').classList.remove('hidden');
+    }
+
+    function closeTeacherAuthModal() {
+      document.getElementById('teacherAuthModal').classList.add('hidden');
+    }
+
+    function verifyTeacherPin() {
+      const input = document.getElementById('teacherPinInput').value;
+      if (input === defaultPin) {
+        closeTeacherAuthModal();
+        openTeacherDashboard();
+      } else {
+        alert("PIN Guru Salah!");
+      }
+    }
+
+    function openTeacherDashboard() {
+      document.getElementById('teacherDashboardModal').classList.remove('hidden');
+      renderResponseTable();
+    }
+
+    function closeTeacherDashboard() {
+      document.getElementById('teacherDashboardModal').classList.add('hidden');
+    }
+
+    function loadTeacherSettings() {
+      const savedVid = localStorage.getItem('mpi_video_url');
+      if (savedVid) {
+        document.getElementById('apersepsiVideoFrame').src = savedVid;
+        document.getElementById('videoUrlInput').value = savedVid;
+      }
+    }
+
+    function updateVideoUrl() {
+      const val = document.getElementById('videoUrlInput').value.trim();
+      if (val) {
+        localStorage.setItem('mpi_video_url', val);
+        document.getElementById('apersepsiVideoFrame').src = val;
+        alert("Link video diperbarui!");
+      }
+    }
+
+    function exportToExcel() {
+      let responses = JSON.parse(localStorage.getItem('mpi_student_responses') || '[]');
+      if (responses.length === 0) {
+        alert("Belum ada data respon siswa untuk diekspor.");
+        return;
+      }
+
+      const formattedData = responses.map((r, i) => {
+        return {
+          No: i + 1,
+          Waktu: r.timestamp,
+          Nama_Siswa: r.studentName,
+          Kelas: r.studentClass,
+          Kategori_Respon: r.category === 'case' ? 'Studi Kasus' : (r.category === 'quiz' ? 'Post-Test' : 'Refleksi'),
+          Anggota_Kelompok: r.groupMembers || '-',
+          StudiKasus_Persamaan: r.similarities || '-',
+          StudiKasus_FiturKhas: r.uniqueFeatures || '-',
+          StudiKasus_Kesimpulan: r.conclusion || '-',
+          Skor_PostTest: r.score !== undefined ? r.score : '-',
+          Refleksi_Perasaan: r.feelings || '-',
+          Refleksi_HalBerharga: r.learned || '-',
+          Refleksi_Hambatan: r.obstacles || '-'
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(formattedData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap_Respon_MPI");
+
+      XLSX.writeFile(workbook, `Rekap_MPI_Informatika_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    function filterResponseCategory(cat) {
+      activeCategoryFilter = cat;
+      const tabs = ['all', 'case', 'quiz', 'reflection'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (btn) {
+          if (t === cat) {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white";
+          } else {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 text-slate-300 hover:bg-slate-600";
+          }
+        }
+      });
+      renderResponseTable();
+    }
+
+    function renderResponseTable() {
+      const tbody = document.getElementById('responseTableBody');
+      tbody.innerHTML = '';
+      let responses = JSON.parse(localStorage.getItem('mpi_student_responses') || '[]');
+
+      if (activeCategoryFilter !== 'all') {
+        responses = responses.filter(r => r.category === activeCategoryFilter);
+      }
+
+      if (responses.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">Belum ada respon tersimpan dalam kategori ini.</td></tr>`;
+        return;
+      }
+
+      responses.slice().reverse().forEach((res, index) => {
+        const tr = document.createElement('tr');
+        let catBadge = '';
+        let summary = '';
+
+        if (res.category === 'case') {
+          catBadge = `<span class="bg-blue-900/60 text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold">Studi Kasus</span>`;
+          summary = `Kelompok: ${res.groupMembers || '-'}`;
+        } else if (res.category === 'quiz') {
+          catBadge = `<span class="bg-emerald-900/60 text-emerald-300 px-2 py-0.5 rounded text-[10px] font-bold">Post-Test</span>`;
+          summary = `Nilai: <strong class="text-emerald-400 font-bold">${res.score}</strong> / 100`;
+        } else if (res.category === 'reflection') {
+          catBadge = `<span class="bg-purple-900/60 text-purple-300 px-2 py-0.5 rounded text-[10px] font-bold">Refleksi</span>`;
+          summary = `Perasaan: ${res.feelings || '-'}`;
+        }
+
+        tr.innerHTML = `
+          <td class="p-3 text-slate-400">${res.timestamp}</td>
+          <td class="p-3 font-semibold text-white">${res.studentName}</td>
+          <td class="p-3">${res.studentClass}</td>
+          <td class="p-3">${catBadge}</td>
+          <td class="p-3">${summary}</td>
+          <td class="p-3 text-center">
+            <button onclick="viewResponseDetail(${index})" class="bg-slate-700 hover:bg-slate-600 text-emerald-300 px-2.5 py-1 rounded text-[11px] font-bold">
+              Detail
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function viewResponseDetail(idx) {
+      let responses = JSON.parse(localStorage.getItem('mpi_student_responses') || '[]');
+      if (activeCategoryFilter !== 'all') {
+        responses = responses.filter(r => r.category === activeCategoryFilter);
+      }
+      const data = responses.slice().reverse()[idx];
+      if (!data) return;
+
+      const title = document.getElementById('modalDetailTitle');
+      const content = document.getElementById('modalDetailContent');
+
+      title.innerText = `Detail Respon: ${data.studentName} (${data.studentClass})`;
+      let bodyHtml = `<p><b>Waktu:</b> ${data.timestamp}</p>`;
+
+      if (data.category === 'case') {
+        bodyHtml += `
+          <div class="space-y-2 pt-2">
+            <p><b>Anggota Kelompok:</b> ${data.groupMembers}</p>
+            <div class="p-3 bg-slate-800 rounded border border-slate-700">
+              <b class="text-emerald-400 block mb-1">Fitur Persamaan:</b>
+              <p class="mt-1">${data.similarities}</p>
+            </div>
+            <div class="p-3 bg-slate-800 rounded border border-slate-700">
+              <b class="text-amber-400 block mb-1">Fitur Pembeda / Khas Pengolah Data:</b>
+              <p class="mt-1">${data.uniqueFeatures}</p>
+            </div>
+            <div class="p-3 bg-slate-800 rounded border border-slate-700">
+              <b class="text-blue-400 block mb-1">Kesimpulan:</b>
+              <p class="mt-1">${data.conclusion}</p>
+            </div>
+          </div>
+        `;
+      } else if (data.category === 'quiz') {
+        bodyHtml += `
+          <div class="p-4 bg-slate-800 rounded border border-slate-700 text-center space-y-1">
+            <span class="text-xs uppercase text-slate-400">Skor Total Post-Test</span>
+            <div class="text-4xl font-extrabold text-emerald-400">${data.score} / 100</div>
+          </div>
+        `;
+      } else if (data.category === 'reflection') {
+        bodyHtml += `
+          <div class="space-y-2 pt-2">
+            <p><b>Perasaan Belajar:</b> ${data.feelings}</p>
+            <div class="p-3 bg-slate-800 rounded border border-slate-700">
+              <b class="text-purple-400 block mb-1">Hal Paling Berharga:</b>
+              <p class="mt-1">${data.learned}</p>
+            </div>
+            <div class="p-3 bg-slate-800 rounded border border-slate-700">
+              <b class="text-rose-400 block mb-1">Hambatan / Kendala:</b>
+              <p class="mt-1">${data.obstacles}</p>
+            </div>
+          </div>
+        `;
+      }
+
+      content.innerHTML = bodyHtml;
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').classList.add('hidden');
+    }
+
+    function clearLocalResponses() {
+      if (confirm("Apakah Anda yakin ingin menghapus seluruh data respon lokal?")) {
+        localStorage.removeItem('mpi_student_responses');
+        renderResponseTable();
+      }
+    }
+  </script>
+</body>
+</html>
